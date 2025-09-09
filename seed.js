@@ -22,6 +22,7 @@ const testConnection = async () => {
       .findOne();
 
     console.log("👤 First employee record:", employee);
+    console.log("If no employee found, the collection might be empty.");
 
     await mongoose.disconnect();
   } catch (err) {
