@@ -1,28 +1,54 @@
 import Employee from "../models/Employee.js";
 import mongoose from "mongoose";
 
-
 /*getEmployees → Return all employees with full details (join Resume, Skills, WorkInfo, PrivateInfo, Settings).*/
 export const getEmployees = async () => {
   try {
     const employees = await Employee.aggregate([
-      // Lookup Resume
+      // Lookup Experiences
       {
         $lookup: {
-          from: "resumes",
+          from: "experiences",
           localField: "_id",
           foreignField: "employee_id",
-          as: "resume"
-        }
+          as: "experience",
+        },
       },
-      // Lookup Skills
+      // Lookup Educations
       {
         $lookup: {
-          from: "skills",
+          from: "educations",
           localField: "_id",
           foreignField: "employee_id",
-          as: "skills"
-        }
+          as: "education",
+        },
+      },
+      // Lookup Programming Skills
+      {
+        $lookup: {
+          from: "programmingskills",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "programming_languages",
+        },
+      },
+      // Lookup Language Skills
+      {
+        $lookup: {
+          from: "languageskills",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "language",
+        },
+      },
+      // Lookup Other Skills
+      {
+        $lookup: {
+          from: "otherskills",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "other_skills",
+        },
       },
       // Lookup WorkInfo
       {
@@ -30,26 +56,58 @@ export const getEmployees = async () => {
           from: "workinfos",
           localField: "_id",
           foreignField: "employee_id",
-          as: "workInfo"
-        }
+          as: "workInfo",
+        },
       },
       // Lookup PrivateInfo
       {
         $lookup: {
-          from: "privateinfos",
+          from: "privatecontacts",
           localField: "_id",
           foreignField: "employee_id",
-          as: "privateInfo"
-        }
+          as: "private_contact",
+        },
+      },
+      {
+        $lookup: {
+          from: "emergencycontacts",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "emergency",
+        },
+      },
+      {
+        $lookup: {
+          from: "familystatuses",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "family_status",
+        },
+      },
+      {
+        $lookup: {
+          from: "educationprivates",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "education_private",
+        },
+      },
+      {
+        $lookup: {
+          from: "workpermits",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "work_permit",
+        },
       },
       // Lookup Settings
       {
         $lookup: {
-          from: "settings",
+          from: "employeesettings",
           localField: "_id",
           foreignField: "employee_id",
-          as: "settings"
-        }
+          as: "settings",
+        },
       },
       // Populate Department
       {
@@ -57,8 +115,8 @@ export const getEmployees = async () => {
           from: "departments",
           localField: "department_id",
           foreignField: "_id",
-          as: "department"
-        }
+          as: "department",
+        },
       },
       // Populate Manager
       {
@@ -66,8 +124,8 @@ export const getEmployees = async () => {
           from: "employees",
           localField: "manager_id",
           foreignField: "_id",
-          as: "manager"
-        }
+          as: "manager",
+        },
       },
       // Populate Coach
       {
@@ -75,9 +133,51 @@ export const getEmployees = async () => {
           from: "employees",
           localField: "coach_id",
           foreignField: "_id",
-          as: "coach"
-        }
-      }
+          as: "coach",
+        },
+      },
+      // Reshape output
+      {
+        $project: {
+          _id: 1,
+          user: {
+            general_info: {
+              full_name: "$full_name",
+              status: "$status",
+              job_position: "$job_position",
+              work_email: "$work_email",
+              work_phone: "$work_phone",
+              work_mobile: "$work_mobile",
+              tags: "$tags",
+              company: "$company",
+              department: { $arrayElemAt: ["$department", 0] },
+              manager: { $arrayElemAt: ["$manager", 0] },
+              coach: { $arrayElemAt: ["$coach", 0] },
+              image: "$image",
+            },
+            general_resume: {
+              resume: {
+                experience: "$experience",
+                education: "$education",
+              },
+              skills: {
+                programming_languages: "$programming_languages",
+                language: "$language",
+                other_skills: "$other_skills",
+              },
+            },
+            work_info: { $arrayElemAt: ["$workInfo", 0] },
+            private_info: {
+              private_contact: { $arrayElemAt: ["$private_contact", 0] },
+              emergency: { $arrayElemAt: ["$emergency", 0] },
+              family_status: { $arrayElemAt: ["$family_status", 0] },
+              education: { $arrayElemAt: ["$education_private", 0] },
+              work_permit: { $arrayElemAt: ["$work_permit", 0] },
+            },
+            settings: { $arrayElemAt: ["$settings", 0] },
+          },
+        },
+      },
     ]);
 
     return employees;
@@ -86,6 +186,7 @@ export const getEmployees = async () => {
     throw err;
   }
 };
+
 /*getEmployeeById → Return one employee with full details.*/
 export const getEmployeeById = async (employeeId) => {
   try {
@@ -97,7 +198,7 @@ export const getEmployeeById = async (employeeId) => {
     const [employee] = await Employee.aggregate([
       // Match the employee by ID
       {
-        $match: { _id: new mongoose.Types.ObjectId(employeeId) }
+        $match: { _id: new mongoose.Types.ObjectId(employeeId) },
       },
       // Lookup Resume
       {
@@ -105,8 +206,8 @@ export const getEmployeeById = async (employeeId) => {
           from: "resumes",
           localField: "_id",
           foreignField: "employee_id",
-          as: "resume"
-        }
+          as: "resume",
+        },
       },
       // Lookup Skills
       {
@@ -114,8 +215,8 @@ export const getEmployeeById = async (employeeId) => {
           from: "skills",
           localField: "_id",
           foreignField: "employee_id",
-          as: "skills"
-        }
+          as: "skills",
+        },
       },
       // Lookup WorkInfo
       {
@@ -123,8 +224,8 @@ export const getEmployeeById = async (employeeId) => {
           from: "workinfos",
           localField: "_id",
           foreignField: "employee_id",
-          as: "workInfo"
-        }
+          as: "workInfo",
+        },
       },
       // Lookup PrivateInfo
       {
@@ -132,8 +233,8 @@ export const getEmployeeById = async (employeeId) => {
           from: "privateinfos",
           localField: "_id",
           foreignField: "employee_id",
-          as: "privateInfo"
-        }
+          as: "privateInfo",
+        },
       },
       // Lookup Settings
       {
@@ -141,8 +242,8 @@ export const getEmployeeById = async (employeeId) => {
           from: "settings",
           localField: "_id",
           foreignField: "employee_id",
-          as: "settings"
-        }
+          as: "settings",
+        },
       },
       // Lookup Department
       {
@@ -150,8 +251,8 @@ export const getEmployeeById = async (employeeId) => {
           from: "departments",
           localField: "department_id",
           foreignField: "_id",
-          as: "department"
-        }
+          as: "department",
+        },
       },
       // Lookup Manager
       {
@@ -159,8 +260,8 @@ export const getEmployeeById = async (employeeId) => {
           from: "employees",
           localField: "manager_id",
           foreignField: "_id",
-          as: "manager"
-        }
+          as: "manager",
+        },
       },
       // Lookup Coach
       {
@@ -168,8 +269,8 @@ export const getEmployeeById = async (employeeId) => {
           from: "employees",
           localField: "coach_id",
           foreignField: "_id",
-          as: "coach"
-        }
+          as: "coach",
+        },
       },
     ]);
 
@@ -195,14 +296,14 @@ export const searchEmployees = async (searchTerm) => {
           from: "departments",
           localField: "department_id",
           foreignField: "_id",
-          as: "department"
-        }
+          as: "department",
+        },
       },
       // Flatten department array
       {
         $addFields: {
-          department: { $arrayElemAt: ["$department", 0] }
-        }
+          department: { $arrayElemAt: ["$department", 0] },
+        },
       },
       // Match search term
       {
@@ -211,10 +312,10 @@ export const searchEmployees = async (searchTerm) => {
             { full_name: regex },
             { job_position: regex },
             { tags: regex },
-            { "department.name": regex }
-          ]
-        }
-      }
+            { "department.name": regex },
+          ],
+        },
+      },
     ]);
 
     return employees;
@@ -236,8 +337,8 @@ export const getEmployeesPage = async (page = 1, limit = 10) => {
 
     // Get employees with pagination
     const employees = await Employee.aggregate([
-      { $skip: skip },  // skip previous pages
-      { $limit: limit } // limit results per page
+      { $skip: skip }, // skip previous pages
+      { $limit: limit }, // limit results per page
     ]);
 
     return {
@@ -245,7 +346,7 @@ export const getEmployeesPage = async (page = 1, limit = 10) => {
       limit,
       total,
       totalPages: Math.ceil(total / limit),
-      employees
+      employees,
     };
   } catch (err) {
     console.error("Error fetching paginated employees:", err);
@@ -260,8 +361,8 @@ export const getEmployeesByDepartment = async (departmentId) => {
       throw new Error("Invalid department ID");
     }
 
-    const employees = await Employee.find({ 
-      department_id: new mongoose.Types.ObjectId(departmentId) 
+    const employees = await Employee.find({
+      department_id: new mongoose.Types.ObjectId(departmentId),
     });
 
     return employees;
@@ -277,7 +378,7 @@ export const getEmployeesByPosition = async (position) => {
     const regex = new RegExp(position, "i");
 
     const employees = await Employee.find({
-      job_position: regex
+      job_position: regex,
     });
 
     return employees;
@@ -293,11 +394,11 @@ export const getEmployeesByTags = async (tags) => {
     const tagsArray = Array.isArray(tags) ? tags : [tags];
 
     // Use case-insensitive regex for each tag
-    const regexTags = tagsArray.map(tag => new RegExp(tag, "i"));
+    const regexTags = tagsArray.map((tag) => new RegExp(tag, "i"));
 
     const employees = await Employee.find({
       // $in checks if any element in tags array matches
-      tags: { $in: regexTags }
+      tags: { $in: regexTags },
     });
 
     return employees;
@@ -315,26 +416,26 @@ export const getEmployeeStats = async () => {
     const byDepartment = await Employee.aggregate([
       {
         $group: {
-          _id: "$department_id",   // group by department_id
-          count: { $sum: 1 }       // count employees
-        }
+          _id: "$department_id", // group by department_id
+          count: { $sum: 1 }, // count employees
+        },
       },
       {
         $lookup: {
           from: "departments",
           localField: "_id",
           foreignField: "_id",
-          as: "department"
-        }
+          as: "department",
+        },
       },
       { $unwind: "$department" },
       {
         $project: {
           _id: 0,
           department: "$department.name",
-          count: 1
-        }
-      }
+          count: 1,
+        },
+      },
     ]);
 
     stats.byDepartment = byDepartment;
@@ -344,16 +445,16 @@ export const getEmployeeStats = async () => {
       {
         $group: {
           _id: "$job_position",
-          count: { $sum: 1 }
-        }
+          count: { $sum: 1 },
+        },
       },
       {
         $project: {
           _id: 0,
           job_position: "$_id",
-          count: 1
-        }
-      }
+          count: 1,
+        },
+      },
     ]);
 
     stats.byPosition = byPosition;
@@ -381,7 +482,7 @@ export const filterEmployees = async ({ departmentId, position, skills }) => {
 
     // 3️⃣ Filter by skills (skills is an array of skill names)
     if (skills && Array.isArray(skills) && skills.length > 0) {
-      matchConditions.skills = { $all: skills }; 
+      matchConditions.skills = { $all: skills };
       // $all ensures employee has **all** the listed skills
     }
 
@@ -394,9 +495,9 @@ export const filterEmployees = async ({ departmentId, position, skills }) => {
                 from: "skills",
                 localField: "_id",
                 foreignField: "employee_id",
-                as: "skills"
-              }
-            }
+                as: "skills",
+              },
+            },
           ]
         : []),
 
@@ -405,9 +506,9 @@ export const filterEmployees = async ({ departmentId, position, skills }) => {
         ? [
             {
               $addFields: {
-                skillNames: "$skills.name"
-              }
-            }
+                skillNames: "$skills.name",
+              },
+            },
           ]
         : []),
 
@@ -415,9 +516,11 @@ export const filterEmployees = async ({ departmentId, position, skills }) => {
       {
         $match: {
           ...matchConditions,
-          ...(skills && skills.length > 0 ? { skillNames: { $all: skills } } : {})
-        }
-      }
+          ...(skills && skills.length > 0
+            ? { skillNames: { $all: skills } }
+            : {}),
+        },
+      },
     ]);
 
     return employees;

@@ -1,7 +1,7 @@
 // Handles employee settings.
 // Functions:
 
-import EmployeeSettings from "../models/employeeSettings.js";
+import EmployeeSettings from "../models/EmployeeSettings.js";
 import mongoose from "mongoose";
 export const getEmployeeSettings = async (req, res) => {
   try {
