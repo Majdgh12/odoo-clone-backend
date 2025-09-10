@@ -1,111 +1,154 @@
 import express from "express";
-import * as EmployeeController from "../controllers/employee-controller.js";
+import Employee from "../models/Employee.js";
+import {errorHandler} from "../middleware/errorMiddleware.js";
 
 const router = express.Router();
 
-// Get all employees with full details
-// GET /api/employees
-router.get("/", async (req, res) => {
+// GET all employees
+router.get("/", async (req, res, next) => {
   try {
-    const employees = await EmployeeController.getEmployees();
-    res.json(employees);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { page = 1, limit = 10, department_id, job_position, status } = req.query;
+    
+    const filter = {};
+    if (department_id) filter.department_id = department_id;
+    if (job_position) filter.job_position = job_position;
+    if (status) filter.status = status;
+    
+    const employees = await Employee.find(filter)
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .populate("department_id")
+      .populate("manager_id")
+      .populate("coach_id");
+    
+    const total = await Employee.countDocuments(filter);
+    
+    res.json({
+      employees,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      total
+    });
+  } catch (error) {
+    next(error);
   }
 });
 
-// Get employee by ID
-// GET /api/employees/:id
-router.get("/:id", async (req, res) => {
+// GET employee by ID
+router.get("/:id", async (req, res, next) => {
   try {
-    const employee = await EmployeeController.getEmployeeById(req.params.id);
+    const employee = await Employee.findById(req.params.id)
+      .populate("department_id")
+      .populate("manager_id")
+      .populate("coach_id");
+    
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+    
     res.json(employee);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    next(error);
   }
 });
 
-// Search employees by term (name, position, department, tags)
-// GET /api/employees/search?term=John
-router.get("/search", async (req, res) => {
+// CREATE new employee
+router.post("/", async (req, res, next) => {
+  try {
+    const employee = new Employee(req.body);
+    const savedEmployee = await employee.save();
+    res.status(201).json(savedEmployee);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// UPDATE employee
+router.put("/:id", async (req, res, next) => {
+  try {
+    const employee = await Employee.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+    
+    res.json(employee);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE employee
+router.delete("/:id", async (req, res, next) => {
+  try {
+    const employee = await Employee.findByIdAndDelete(req.params.id);
+    
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+    
+    res.json({ message: "Employee deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET employees by manager
+router.get("/manager/:managerId", async (req, res, next) => {
+  try {
+    const employees = await Employee.find({ manager_id: req.params.managerId })
+      .populate("department_id")
+      .populate("coach_id");
+    
+    res.json(employees);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET employees by department
+router.get("/department/:departmentId", async (req, res, next) => {
+  try {
+    const employees = await Employee.find({ department_id: req.params.departmentId })
+      .populate("manager_id")
+      .populate("coach_id");
+    
+    res.json(employees);
+  } catch (error) {
+    next(error);
+  }
+});
+router.get("/search", async (req, res, next) => {
   try {
     const term = req.query.term || "";
-    const employees = await EmployeeController.searchEmployees(term);
+    
+    if (!term) {
+      return res.status(400).json({ error: "Search term is required" });
+    }
+    
+    const employees = await Employee.find({
+      $or: [
+        { full_name: new RegExp(term, 'i') },
+        { job_position: new RegExp(term, 'i') },
+        { work_email: new RegExp(term, 'i') },
+        { 'tags': new RegExp(term, 'i') }
+      ]
+    })
+    .populate("department_id")
+    .populate("manager_id")
+    .populate("coach_id");
+    
     res.json(employees);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    next(error);
   }
 });
 
-// Pagination
-// GET /api/employees/page?page=1&limit=10
-router.get("/page", async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const data = await EmployeeController.getEmployeesPage(page, limit);
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Filter by department
-// GET /api/employees/department/:departmentId
-router.get("/department/:departmentId", async (req, res) => {
-  try {
-    const employees = await EmployeeController.getEmployeesByDepartment(req.params.departmentId);
-    res.json(employees);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Filter by job position
-// GET /api/employees/position/:position
-router.get("/position/:position", async (req, res) => {
-  try {
-    const employees = await EmployeeController.getEmployeesByPosition(req.params.position);
-    res.json(employees);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Filter by tags
-// GET /api/employees/tags?tags=tag1,tag2
-router.get("/tags", async (req, res) => {
-  try {
-    const tags = req.query.tags ? req.query.tags.split(",") : [];
-    const employees = await EmployeeController.getEmployeesByTags(tags);
-    res.json(employees);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Get employee stats
-// GET /api/employees/stats
-router.get("/stats", async (req, res) => {
-  try {
-    const stats = await EmployeeController.getEmployeeStats();
-    res.json(stats);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Advanced filter
-// GET /api/employees/filter?departmentId=...&position=...&skills=skill1,skill2
-router.get("/filter", async (req, res) => {
-  try {
-    const { departmentId, position, skills } = req.query;
-    const skillsArray = skills ? skills.split(",") : [];
-    const employees = await EmployeeController.filterEmployees({ departmentId, position, skills: skillsArray });
-    res.json(employees);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// Error handling middleware
+router.use(errorHandler);
 
 export default router;
