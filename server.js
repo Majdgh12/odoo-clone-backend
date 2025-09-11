@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import employeeRoutes from "./routes/employee-routes.js";
@@ -8,7 +9,7 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-
+app.use(cors());
 // Connect to MongoDB
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -20,6 +21,8 @@ mongoose
 
 // Mount routes
 app.use("/api/employees", employeeRoutes);
+
+// Add other routes as needed
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

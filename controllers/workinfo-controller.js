@@ -1,4 +1,4 @@
-import WorkInfo from "../models/workInfo.js";
+import WorkInfo from "../models/WorkInfo.js";
 
 /**
  * getEmployeeWorkInfo → Return work info for a specific employee
