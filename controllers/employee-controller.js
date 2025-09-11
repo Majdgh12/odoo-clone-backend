@@ -190,32 +190,60 @@ export const getEmployees = async () => {
 /*getEmployeeById → Return one employee with full details.*/
 export const getEmployeeById = async (employeeId) => {
   try {
-    // Ensure the ID is a valid ObjectId
-    if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+
+    const cleanedId = employeeId.trim();
+
+    if (!mongoose.Types.ObjectId.isValid(cleanedId)) {
       throw new Error("Invalid employee ID");
     }
 
     const [employee] = await Employee.aggregate([
-      // Match the employee by ID
-      {
-        $match: { _id: new mongoose.Types.ObjectId(employeeId) },
-      },
-      // Lookup Resume
+      // Match employee by ID
+      { $match: { _id: new mongoose.Types.ObjectId(cleanedId) } },
+
+      // Lookup Experiences
       {
         $lookup: {
-          from: "resumes",
+          from: "experiences",
           localField: "_id",
           foreignField: "employee_id",
-          as: "resume",
+          as: "experience",
         },
       },
-      // Lookup Skills
+      // Lookup Educations
       {
         $lookup: {
-          from: "skills",
+          from: "educations",
           localField: "_id",
           foreignField: "employee_id",
-          as: "skills",
+          as: "education",
+        },
+      },
+      // Lookup Programming Skills
+      {
+        $lookup: {
+          from: "programmingskills",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "programming_languages",
+        },
+      },
+      // Lookup Language Skills
+      {
+        $lookup: {
+          from: "languageskills",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "language",
+        },
+      },
+      // Lookup Other Skills
+      {
+        $lookup: {
+          from: "otherskills",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "other_skills",
         },
       },
       // Lookup WorkInfo
@@ -227,25 +255,57 @@ export const getEmployeeById = async (employeeId) => {
           as: "workInfo",
         },
       },
-      // Lookup PrivateInfo
+      // Lookup Private Info (sub-collections)
       {
         $lookup: {
-          from: "privateinfos",
+          from: "privatecontacts",
           localField: "_id",
           foreignField: "employee_id",
-          as: "privateInfo",
+          as: "private_contact",
+        },
+      },
+      {
+        $lookup: {
+          from: "emergencycontacts",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "emergency",
+        },
+      },
+      {
+        $lookup: {
+          from: "familystatuses",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "family_status",
+        },
+      },
+      {
+        $lookup: {
+          from: "educationprivates",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "education_private",
+        },
+      },
+      {
+        $lookup: {
+          from: "workpermits",
+          localField: "_id",
+          foreignField: "employee_id",
+          as: "work_permit",
         },
       },
       // Lookup Settings
       {
         $lookup: {
-          from: "settings",
+          from: "employeesettings",
           localField: "_id",
           foreignField: "employee_id",
           as: "settings",
         },
       },
-      // Lookup Department
+      // Populate Department
       {
         $lookup: {
           from: "departments",
@@ -254,7 +314,7 @@ export const getEmployeeById = async (employeeId) => {
           as: "department",
         },
       },
-      // Lookup Manager
+      // Populate Manager
       {
         $lookup: {
           from: "employees",
@@ -263,7 +323,7 @@ export const getEmployeeById = async (employeeId) => {
           as: "manager",
         },
       },
-      // Lookup Coach
+      // Populate Coach
       {
         $lookup: {
           from: "employees",
@@ -272,18 +332,58 @@ export const getEmployeeById = async (employeeId) => {
           as: "coach",
         },
       },
+      // Reshape output (same as getEmployees)
+      {
+        $project: {
+          _id: 1,
+          user: {
+            general_info: {
+              full_name: "$full_name",
+              status: "$status",
+              job_position: "$job_position",
+              work_email: "$work_email",
+              work_phone: "$work_phone",
+              work_mobile: "$work_mobile",
+              tags: "$tags",
+              company: "$company",
+              department: { $arrayElemAt: ["$department", 0] },
+              manager: { $arrayElemAt: ["$manager", 0] },
+              coach: { $arrayElemAt: ["$coach", 0] },
+              image: "$image",
+            },
+            general_resume: {
+              resume: {
+                experience: "$experience",
+                education: "$education",
+              },
+              skills: {
+                programming_languages: "$programming_languages",
+                language: "$language",
+                other_skills: "$other_skills",
+              },
+            },
+            work_info: { $arrayElemAt: ["$workInfo", 0] },
+            private_info: {
+              private_contact: { $arrayElemAt: ["$private_contact", 0] },
+              emergency: { $arrayElemAt: ["$emergency", 0] },
+              family_status: { $arrayElemAt: ["$family_status", 0] },
+              education: { $arrayElemAt: ["$education_private", 0] },
+              work_permit: { $arrayElemAt: ["$work_permit", 0] },
+            },
+            settings: { $arrayElemAt: ["$settings", 0] },
+          },
+        },
+      },
     ]);
 
-    if (!employee) {
-      throw new Error("Employee not found");
-    }
-
+    if (!employee) throw new Error("Employee not found");
     return employee;
   } catch (err) {
     console.error("Error fetching employee:", err);
     throw err;
   }
 };
+
 /*searchEmployees → Search employees by name, department, position, or tags.*/
 export const searchEmployees = async (searchTerm) => {
   try {

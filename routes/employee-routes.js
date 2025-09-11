@@ -18,12 +18,14 @@ router.get("/", async (req, res) => {
 // GET /api/employees/:id
 router.get("/:id", async (req, res) => {
   try {
+    console.log("Employee ID received:", req.params.id);  // 👀 check for %0A or spaces
     const employee = await EmployeeController.getEmployeeById(req.params.id);
     res.json(employee);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Search employees by term (name, position, department, tags)
 // GET /api/employees/search?term=John
