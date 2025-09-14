@@ -3,6 +3,12 @@ import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import employeeRoutes from "./routes/employee-routes.js";
+import departmentRoutes from "./routes/department-routes.js";
+import privateInfoRoutes from "./routes/privateinfo-routes.js";
+import resumeRoutes from "./routes/resume-routes.js";
+import skillsRoutes from "./routes/skills-routes.js";
+import workInfoRoutes from "./routes/workinfo-routes.js";
+import employeeSettingsRoutes from "./routes/employeesettings-routes.js";
 
 // Load environment variables
 dotenv.config();
@@ -22,6 +28,23 @@ mongoose
 
 // Mount routes
 app.use("/api/employees", employeeRoutes);
+app.use("/api/departments", departmentRoutes);
+app.use("/api/private-info", privateInfoRoutes);
+app.use("/api/resume", resumeRoutes);
+app.use("/api/skills", skillsRoutes);
+app.use("/api/work-info", workInfoRoutes);
+app.use("/api/employee-settings", employeeSettingsRoutes);
+
+// Add error handling middleware
+app.use((error, req, res, next) => {
+  console.error(error);
+  res.status(500).json({ error: "Internal server error" });
+});
+
+// Handle 404 routes
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
 
 
 // Add other routes as needed
