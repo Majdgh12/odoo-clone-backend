@@ -4,183 +4,181 @@ import mongoose from "mongoose";
 /*getEmployees → Return all employees with full details (join Resume, Skills, WorkInfo, PrivateInfo, Settings).*/
 export const getEmployees = async () => {
   try {
-    const employees = await Employee.aggregate([
-      // Lookup Experiences
-      {
-        $lookup: {
-          from: "experiences",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "experience",
-        },
-      },
-      // Lookup Educations
-      {
-        $lookup: {
-          from: "educations",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "education",
-        },
-      },
-      // Lookup Programming Skills
-      {
-        $lookup: {
-          from: "programmingskills",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "programming_languages",
-        },
-      },
-      // Lookup Language Skills
-      {
-        $lookup: {
-          from: "languageskills",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "language",
-        },
-      },
-      // Lookup Other Skills
-      {
-        $lookup: {
-          from: "otherskills",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "other_skills",
-        },
-      },
-      // Lookup WorkInfo
-      {
-        $lookup: {
-          from: "workinfos",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "workInfo",
-        },
-      },
-      // Lookup PrivateInfo
-      {
-        $lookup: {
-          from: "privatecontacts",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "private_contact",
-        },
-      },
-      {
-        $lookup: {
-          from: "emergencycontacts",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "emergency",
-        },
-      },
-      {
-        $lookup: {
-          from: "familystatuses",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "family_status",
-        },
-      },
-      {
-        $lookup: {
-          from: "educationprivates",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "education_private",
-        },
-      },
-      {
-        $lookup: {
-          from: "workpermits",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "work_permit",
-        },
-      },
-      // Lookup Settings
-      {
-        $lookup: {
-          from: "employeesettings",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "settings",
-        },
-      },
-      // Populate Department
-      {
-        $lookup: {
-          from: "departments",
-          localField: "department_id",
-          foreignField: "_id",
-          as: "department",
-        },
-      },
-      // Populate Manager
-      {
-        $lookup: {
-          from: "employees",
-          localField: "manager_id",
-          foreignField: "_id",
-          as: "manager",
-        },
-      },
-      // Populate Coach
-      {
-        $lookup: {
-          from: "employees",
-          localField: "coach_id",
-          foreignField: "_id",
-          as: "coach",
-        },
-      },
-      // Reshape output
-      {
-        $project: {
-          _id: 1,
-          user: {
-            general_info: {
-              full_name: "$full_name",
-              status: "$status",
-              job_position: "$job_position",
-              work_email: "$work_email",
-              work_phone: "$work_phone",
-              work_mobile: "$work_mobile",
-              tags: "$tags",
-              company: "$company",
-              department: { $arrayElemAt: ["$department", 0] },
-              manager: { $arrayElemAt: ["$manager", 0] },
-              coach: { $arrayElemAt: ["$coach", 0] },
-              image: "$image",
+    return await Employee.aggregate([
+          // Lookup Experiences
+          {
+            $lookup: {
+              from: "experiences",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "experience",
             },
-            general_resume: {
-              resume: {
-                experience: "$experience",
-                education: "$education",
-              },
-              skills: {
-                programming_languages: "$programming_languages",
-                language: "$language",
-                other_skills: "$other_skills",
-              },
-            },
-            work_info: { $arrayElemAt: ["$workInfo", 0] },
-            private_info: {
-              private_contact: { $arrayElemAt: ["$private_contact", 0] },
-              emergency: { $arrayElemAt: ["$emergency", 0] },
-              family_status: { $arrayElemAt: ["$family_status", 0] },
-              education: { $arrayElemAt: ["$education_private", 0] },
-              work_permit: { $arrayElemAt: ["$work_permit", 0] },
-            },
-            settings: { $arrayElemAt: ["$settings", 0] },
           },
-        },
-      },
-    ]);
-
-    return employees;
+          // Lookup Educations
+          {
+            $lookup: {
+              from: "educations",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "education",
+            },
+          },
+          // Lookup Programming Skills
+          {
+            $lookup: {
+              from: "programmingskills",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "programming_languages",
+            },
+          },
+          // Lookup Language Skills
+          {
+            $lookup: {
+              from: "languageskills",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "language",
+            },
+          },
+          // Lookup Other Skills
+          {
+            $lookup: {
+              from: "otherskills",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "other_skills",
+            },
+          },
+          // Lookup WorkInfo
+          {
+            $lookup: {
+              from: "workinfos",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "workInfo",
+            },
+          },
+          // Lookup PrivateInfo
+          {
+            $lookup: {
+              from: "privatecontacts",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "private_contact",
+            },
+          },
+          {
+            $lookup: {
+              from: "emergencycontacts",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "emergency",
+            },
+          },
+          {
+            $lookup: {
+              from: "familystatuses",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "family_status",
+            },
+          },
+          {
+            $lookup: {
+              from: "educationprivates",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "education_private",
+            },
+          },
+          {
+            $lookup: {
+              from: "workpermits",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "work_permit",
+            },
+          },
+          // Lookup Settings
+          {
+            $lookup: {
+              from: "employeesettings",
+              localField: "_id",
+              foreignField: "employee_id",
+              as: "settings",
+            },
+          },
+          // Populate Department
+          {
+            $lookup: {
+              from: "departments",
+              localField: "department_id",
+              foreignField: "_id",
+              as: "department",
+            },
+          },
+          // Populate Manager
+          {
+            $lookup: {
+              from: "employees",
+              localField: "manager_id",
+              foreignField: "_id",
+              as: "manager",
+            },
+          },
+          // Populate Coach
+          {
+            $lookup: {
+              from: "employees",
+              localField: "coach_id",
+              foreignField: "_id",
+              as: "coach",
+            },
+          },
+          // Reshape output
+          {
+            $project: {
+              _id: 1,
+              user: {
+                general_info: {
+                  full_name: "$full_name",
+                  status: "$status",
+                  job_position: "$job_position",
+                  work_email: "$work_email",
+                  work_phone: "$work_phone",
+                  work_mobile: "$work_mobile",
+                  tags: "$tags",
+                  company: "$company",
+                  department: { $arrayElemAt: ["$department", 0] },
+                  manager: { $arrayElemAt: ["$manager", 0] },
+                  coach: { $arrayElemAt: ["$coach", 0] },
+                  image: "$image",
+                },
+                general_resume: {
+                  resume: {
+                    experience: "$experience",
+                    education: "$education",
+                  },
+                  skills: {
+                    programming_languages: "$programming_languages",
+                    language: "$language",
+                    other_skills: "$other_skills",
+                  },
+                },
+                work_info: { $arrayElemAt: ["$workInfo", 0] },
+                private_info: {
+                  private_contact: { $arrayElemAt: ["$private_contact", 0] },
+                  emergency: { $arrayElemAt: ["$emergency", 0] },
+                  family_status: { $arrayElemAt: ["$family_status", 0] },
+                  education: { $arrayElemAt: ["$education_private", 0] },
+                  work_permit: { $arrayElemAt: ["$work_permit", 0] },
+                },
+                settings: { $arrayElemAt: ["$settings", 0] },
+              },
+            },
+          },
+        ]);
   } catch (err) {
     console.error("Error fetching employees:", err);
     throw err;
@@ -376,6 +374,7 @@ export const getEmployeeById = async (employeeId) => {
       },
     ]);
 
+// sourcery skip: use-braces
     if (!employee) throw new Error("Employee not found");
     return employee;
   } catch (err) {
@@ -389,6 +388,7 @@ export const searchEmployees = async (searchTerm) => {
   try {
     const regex = new RegExp(searchTerm, "i"); // case-insensitive search
 
+// sourcery skip: inline-immediately-returned-variable
     const employees = await Employee.aggregate([
       // Join with departments
       {

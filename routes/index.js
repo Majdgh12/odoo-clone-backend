@@ -1,5 +1,5 @@
 // routes/index.js
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // Import all route modules
