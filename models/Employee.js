@@ -10,9 +10,10 @@ const employeeSchema = new mongoose.Schema({
   image: String,
   tags: [String],
   company: String,
+
   department_id: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
   manager_id: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // direct manager
-  coach_id: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }    // coach
+  team_lead_id: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // NEW: for team lead link
 });
 
 const Employee = mongoose.model("Employee", employeeSchema);

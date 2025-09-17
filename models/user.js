@@ -1,4 +1,3 @@
-// models/User.js
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
@@ -9,7 +8,7 @@ const userSchema = new mongoose.Schema({
     enum: ["admin", "manager", "team_lead", "employee"], 
     required: true 
   },
-  employee: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // link to employee
+  employee: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // link to employee profile
 });
 
 export default mongoose.model("User", userSchema);

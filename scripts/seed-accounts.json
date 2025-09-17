@@ -1,0 +1,22 @@
+[
+  {
+    "role": "admin",
+    "email": "admin@example.com",
+    "password": "admin123"
+  },
+  {
+    "role": "manager",
+    "email": "engineering.manager@seed.local",
+    "password": "manager123"
+  },
+  {
+    "role": "team_lead",
+    "email": "engineering.lead@seed.local",
+    "password": "teamlead123"
+  },
+  {
+    "role": "employee",
+    "email": "engineering.emp1@seed.local",
+    "password": "employee1pass"
+  }
+]
