@@ -3,6 +3,7 @@ import User from "../models/user.js";
 import Employee from "../models/Employee.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { log } from "mathjs";
 
 export const login = async (req, res) => {
   try {
@@ -36,11 +37,14 @@ export const login = async (req, res) => {
       message: "Login successful",
       token,
       user: {
+        id: user._id,
         email: user.email,
         role: user.role,
         employee: user.employee,
       },
     });
+    console.log("User logged in:", user.email);
+    console.log("User ID:", user._id);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

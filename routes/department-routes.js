@@ -1,93 +1,90 @@
+// routes/department-routes.js
 import express from "express";
-import Department from "../models/Department.js";
-import Employee from "../models/Employee.js";
-import {errorHandler} from "../middleware/errorMiddleware.js";
+import * as DepartmentController from "../controllers/department-controller.js";
 
 const router = express.Router();
 
-// GET all departments
-router.get("/", async (req, res, next) => {
+// ✅ Get all departments
+// GET /api/departments
+router.get("/", async (req, res) => {
   try {
-    const departments = await Department.find().populate("manager_id");
+    const departments = await DepartmentController.getDepartments();
     res.json(departments);
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// GET department by ID
-router.get("/:id", async (req, res, next) => {
+// ✅ Get department by ID
+// GET /api/departments/:id
+router.get("/:id", async (req, res) => {
   try {
-    const department = await Department.findById(req.params.id).populate("manager_id");
-    
-    if (!department) {
-      return res.status(404).json({ message: "Department not found" });
-    }
-    
+    const department = await DepartmentController.getDepartmentById(req.params.id);
     res.json(department);
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// CREATE new department
-router.post("/", async (req, res, next) => {
+// ✅ Create department
+// POST /api/departments
+router.post("/", async (req, res) => {
   try {
-    const department = new Department(req.body);
-    const savedDepartment = await department.save();
-    res.status(201).json(savedDepartment);
-  } catch (error) {
-    next(error);
+    const department = await DepartmentController.createDepartment(req.body);
+    res.status(201).json(department);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// UPDATE department
-router.put("/:id", async (req, res, next) => {
+// ✅ Update department
+// PUT /api/departments/:id
+router.put("/:id", async (req, res) => {
   try {
-    const department = await Department.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    
-    if (!department) {
-      return res.status(404).json({ message: "Department not found" });
-    }
-    
+    const department = await DepartmentController.updateDepartment(req.params.id, req.body);
     res.json(department);
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// DELETE department
-router.delete("/:id", async (req, res, next) => {
+// ✅ Delete department
+// DELETE /api/departments/:id
+router.delete("/:id", async (req, res) => {
   try {
-    const department = await Department.findByIdAndDelete(req.params.id);
-    
-    if (!department) {
-      return res.status(404).json({ message: "Department not found" });
-    }
-    
+    await DepartmentController.deleteDepartment(req.params.id);
     res.json({ message: "Department deleted successfully" });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// GET department employees
-router.get("/:id/employees", async (req, res, next) => {
+// ✅ Get employees in department
+// GET /api/departments/:id/employees
+router.get("/:id/employees", async (req, res) => {
   try {
-    const employees = await Employee.find({ department_id: req.params.id })
-      .populate("manager_id")
-      .populate("coach_id");
-    
+    const employees = await DepartmentController.getDepartmentEmployees(req.params.id);
     res.json(employees);
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-router.use(errorHandler);
+// ✅ Assign manager to department
+router.put("/:departmentId/assign-manager", async (req, res) => {
+  try {
+    const { manager_id } = req.body;
+    const { departmentId } = req.params;
+
+    if (!manager_id) {
+      return res.status(400).json({ error: "manager_id is required" });
+    }
+
+    const result = await DepartmentController.assignManager(departmentId, manager_id);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export default router;

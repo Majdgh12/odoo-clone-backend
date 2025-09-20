@@ -27,31 +27,6 @@ router.get("/:id", async (req, res) => {
 });
 
 
-// Search employees by term (name, position, department, tags)
-// GET /api/employees/search?term=John
-router.get("/search", async (req, res) => {
-  try {
-    const term = req.query.term || "";
-    const employees = await EmployeeController.searchEmployees(term);
-    res.json(employees);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Pagination
-// GET /api/employees/page?page=1&limit=10
-router.get("/page", async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const data = await EmployeeController.getEmployeesPage(page, limit);
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // Filter by department
 // GET /api/employees/department/:departmentId
 router.get("/department/:departmentId", async (req, res) => {
@@ -62,52 +37,57 @@ router.get("/department/:departmentId", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// Filter by job position
-// GET /api/employees/position/:position
-router.get("/position/:position", async (req, res) => {
+// Create new employee (+ linked user account)
+// POST /api/employees
+router.post("/", async (req, res) => {
   try {
-    const employees = await EmployeeController.getEmployeesByPosition(req.params.position);
-    res.json(employees);
+    const employee = await EmployeeController.createEmployee(req.body);
+    res.status(201).json(employee);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Filter by tags
-// GET /api/employees/tags?tags=tag1,tag2
-router.get("/tags", async (req, res) => {
+// ---------------- PUT ----------------
+
+// Update employee details
+// PUT /api/employees/:id
+// employee-routes.js
+router.put("/:id", async (req, res) => {
   try {
-    const tags = req.query.tags ? req.query.tags.split(",") : [];
-    const employees = await EmployeeController.getEmployeesByTags(tags);
-    res.json(employees);
+    const updatedEmployee = await EmployeeController.updateEmployee(req.params.id, req.body);
+    res.json(updatedEmployee);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+
+// Change employee role (update User.role)
+// PUT /api/employees/:id/role
+router.put("/:id/role", async (req, res) => {
+  try {
+    const updatedUser = await EmployeeController.updateEmployeeRole(req.params.id, req.body.role);
+    res.json(updatedUser);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Get employee stats
-// GET /api/employees/stats
-router.get("/stats", async (req, res) => {
+// ---------------- DELETE ----------------
+
+// Delete employee (+ linked user)
+// DELETE /api/employees/:id
+router.delete("/:id", async (req, res) => {
   try {
-    const stats = await EmployeeController.getEmployeeStats();
-    res.json(stats);
+    const deleted = await EmployeeController.deleteEmployee(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Employee not found" });
+    res.json({ message: "Employee deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Advanced filter
-// GET /api/employees/filter?departmentId=...&position=...&skills=skill1,skill2
-router.get("/filter", async (req, res) => {
-  try {
-    const { departmentId, position, skills } = req.query;
-    const skillsArray = skills ? skills.split(",") : [];
-    const employees = await EmployeeController.filterEmployees({ departmentId, position, skills: skillsArray });
-    res.json(employees);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+
 
 export default router;
