@@ -73,6 +73,9 @@ router.put("/:id/role", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// Assign employee to a team lead
+// PUT /api/employees/:id/assign-team-lead
+router.put("/:id/assign-team-lead", EmployeeController.assignEmployeeToTeamLead);
 
 // ---------------- DELETE ----------------
 
@@ -87,7 +90,6 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 export default router;

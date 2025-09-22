@@ -386,21 +386,27 @@ export const getEmployeeById = async (employeeId) => {
 //create employee
 // Fixed createEmployee function with proper error handling
 export const createEmployee = async (employeeData) => {
-  console.log('🚀 CONTROLLER: createEmployee called');
-  console.log('🔍 CONTROLLER: employeeData received:', employeeData);
-  console.log('🔍 CONTROLLER: employeeData type:', typeof employeeData);
-  
+  console.log("🚀 CONTROLLER: createEmployee called");
+  console.log("🔍 CONTROLLER: employeeData received:", employeeData);
+  console.log("🔍 CONTROLLER: employeeData type:", typeof employeeData);
+
   try {
-    // The issue was here - you were trying to access employeeData.status 
+    // The issue was here - you were trying to access employeeData.status
     // but employeeData might be undefined or not have the status property
-    
+
     if (!employeeData) {
-      throw new Error('Employee data is required');
+      throw new Error("Employee data is required");
     }
 
     // Validate required fields
-    if (!employeeData.full_name || !employeeData.work_email || !employeeData.department_id) {
-      throw new Error('Missing required fields: full_name, work_email, or department_id');
+    if (
+      !employeeData.full_name ||
+      !employeeData.work_email ||
+      !employeeData.department_id
+    ) {
+      throw new Error(
+        "Missing required fields: full_name, work_email, or department_id"
+      );
     }
 
     // Process the employee data with safe property access
@@ -411,32 +417,38 @@ export const createEmployee = async (employeeData) => {
       work_phone: employeeData.work_phone || "",
       work_mobile: employeeData.work_mobile || "",
       company: employeeData.company || "",
+      tags: Array.isArray(employeeData.tags) ? employeeData.tags : [],
       department_id: employeeData.department_id,
-      manager_id: (employeeData.manager_id === "null" || !employeeData.manager_id) ? null : employeeData.manager_id,
-      coach_id: (employeeData.coach_id === "null" || !employeeData.coach_id) ? null : employeeData.coach_id,
-      status: employeeData.status || "offline" // This was the problematic line - now with fallback
+      manager_id:
+        employeeData.manager_id === "null" || !employeeData.manager_id
+          ? null
+          : employeeData.manager_id,
+      coach_id:
+        employeeData.coach_id === "null" || !employeeData.coach_id
+          ? null
+          : employeeData.coach_id,
+      status: employeeData.status || "offline", // This was the problematic line - now with fallback
     };
 
-    console.log('✅ CONTROLLER: Processed employee data:', processedData);
+    console.log("✅ CONTROLLER: Processed employee data:", processedData);
 
     // Create the employee
     const employee = new Employee(processedData);
     const savedEmployee = await employee.save();
 
-    console.log('✅ CONTROLLER: Employee saved successfully:', savedEmployee);
+    console.log("✅ CONTROLLER: Employee saved successfully:", savedEmployee);
 
     return {
       message: "Employee created successfully",
-      employee: savedEmployee
+      employee: savedEmployee,
     };
-
   } catch (error) {
-    console.error('❌ CONTROLLER ERROR in createEmployee:', error);
-    console.error('❌ CONTROLLER ERROR message:', error.message);
-    console.error('❌ CONTROLLER ERROR stack:', error.stack);
-    
+    console.error("❌ CONTROLLER ERROR in createEmployee:", error);
+    console.error("❌ CONTROLLER ERROR message:", error.message);
+    console.error("❌ CONTROLLER ERROR stack:", error.stack);
+
     // Re-throw the error so the route can handle it
-    throw new Error(error.message || 'Failed to create employee');
+    throw new Error(error.message || "Failed to create employee");
   }
 };
 
@@ -486,6 +498,41 @@ export const updateEmployeeRole = async (req, res) => {
     await user.save();
 
     res.json({ message: "Role updated successfully", user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Assign employee to a team lead
+export const assignEmployeeToTeamLead = async (req, res) => {
+  try {
+    const { teamLeadId } = req.body;
+    const { id: employeeId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(teamLeadId)) {
+      return res.status(400).json({ message: "Invalid team lead ID" });
+    }
+
+    // Verify team lead exists and has correct role
+    const teamLead = await User.findById(teamLeadId).populate("employee");
+    if (!teamLead || teamLead.role !== "team_lead") {
+      return res
+        .status(400)
+        .json({ message: "Provided user is not a team lead" });
+    }
+
+    // Update employee with team lead reference
+    const employee = await Employee.findByIdAndUpdate(
+      employeeId,
+      { team_lead_id: teamLead.employee._id },
+      { new: true }
+    );
+
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    res.json({ message: "Employee assigned to team lead", employee });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
