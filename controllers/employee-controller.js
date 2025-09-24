@@ -401,8 +401,8 @@ export const createEmployee = async (employeeData) => {
     // Validate required fields
     if (
       !employeeData.full_name ||
-      !employeeData.work_email ||
-      !employeeData.department_id
+      !employeeData.work_email
+      
     ) {
       throw new Error(
         "Missing required fields: full_name, work_email, or department_id"
@@ -418,7 +418,7 @@ export const createEmployee = async (employeeData) => {
       work_mobile: employeeData.work_mobile || "",
       company: employeeData.company || "",
       tags: Array.isArray(employeeData.tags) ? employeeData.tags : [],
-      department_id: employeeData.department_id,
+      department_id: employeeData.department_id || null,
       manager_id:
         employeeData.manager_id === "null" || !employeeData.manager_id
           ? null
