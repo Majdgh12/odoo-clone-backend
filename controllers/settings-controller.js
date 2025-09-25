@@ -31,3 +31,42 @@ export const getAllEmployeeSettings = async (req, res) => {
     res.status(500).json({ message: "Error fetching employee settings", error });
   }
 };
+export const updateEmployeeSettings = async (req, res) => {
+  try {
+    const { employeeId } = req.params; 
+
+    if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+      return res.status(400).json({ message: "Invalid employee ID" });
+    }
+
+    // ✅ Default structure for settings
+    const defaultSettings = {
+      employee_type: "",
+      related_user: "",
+      hourly_cost: 0,
+      pos_pin_code: "",
+      badge_id: "",
+    };
+
+    // Merge defaults with incoming body
+    const updateFields = {
+      ...defaultSettings,
+      ...req.body, // overwrite defaults with what user sent
+    };
+
+    // Upsert: create if not exists
+    const updatedSettings = await EmployeeSettings.findOneAndUpdate(
+      { employee_id: employeeId },
+      updateFields,
+      { new: true, upsert: true } 
+    );
+
+    res.status(200).json({
+      message: "Employee settings updated successfully",
+      settings: updatedSettings,
+    });
+  } catch (error) {
+    console.error("Update employee settings error:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};

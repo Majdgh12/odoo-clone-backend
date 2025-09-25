@@ -9,7 +9,7 @@ import Experience from "../models/Experience.js";
 import Education from "../models/Education.js";
 import LanguageSkill from "../models/LanguageSkill.js";
 import OtherSkill from "../models/OtherSkill.js";
-
+import ProgrammingSkill from "../models/programmingSkill.js";
 export const getEmployeeResume = async (employeeId) => {
   try {
     // Validate employeeId
@@ -75,5 +75,46 @@ export const getAllResumes = async () => {
   } catch (err) {
     console.error("Error fetching all resumes:", err);
     throw err;
+  }
+};
+export const updateEmployeeResume = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const {
+      education = [],
+      experience = [],
+      languageSkills = [],
+      otherSkills = [],
+      programmingSkills = [],
+    } = req.body;
+
+    // Delete old resume data
+    await Promise.all([
+      Education.deleteMany({ employee_id: employeeId }),
+      Experience.deleteMany({ employee_id: employeeId }),
+      LanguageSkill.deleteMany({ employee_id: employeeId }),
+      OtherSkill.deleteMany({ employee_id: employeeId }),
+      ProgrammingSkill.deleteMany({ employee_id: employeeId }),
+    ]);
+
+    // Insert new data
+    const [eduDocs, expDocs, langDocs, otherDocs, progDocs] = await Promise.all([
+      Education.insertMany(education.map(e => ({ ...e, employee_id: employeeId }))),
+      Experience.insertMany(experience.map(e => ({ ...e, employee_id: employeeId }))),
+      LanguageSkill.insertMany(languageSkills.map(e => ({ ...e, employee_id: employeeId }))),
+      OtherSkill.insertMany(otherSkills.map(e => ({ ...e, employee_id: employeeId }))),
+      ProgrammingSkill.insertMany(programmingSkills.map(e => ({ ...e, employee_id: employeeId }))),
+    ]);
+
+    res.json({
+      message: "Employee resume updated successfully",
+      education: eduDocs,
+      experience: expDocs,
+      languageSkills: langDocs,
+      otherSkills: otherDocs,
+      programmingSkills: progDocs,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

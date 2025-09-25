@@ -454,8 +454,8 @@ export const createEmployee = async (employeeData) => {
 
 // UPDATE Employee details
 export const updateEmployee = async (id, data) => {
-  if (!employeeData.status) {
-    employeeData.status = "offline";
+  if (!data.status) {
+    data.status = "offline";
   }
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new Error("Invalid employee ID");

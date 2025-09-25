@@ -2,7 +2,7 @@ import express from "express";
 import WorkInfo from "../models/WorkInfo.js";
 import WorkPermit from "../models/WorkPermit.js";
 import { errorHandler } from "../middleware/errorMiddleware.js";
-
+import { updateEmployeeWorkData } from "../controllers/workinfo-controller.js";
 const router = express.Router();
 
 // GET work info by employee ID
@@ -85,7 +85,7 @@ router.post("/work-permit", async (req, res, next) => {
     next(error);
   }
 });
-
+router.put("/employee/:employeeId", updateEmployeeWorkData);
 router.use(errorHandler);
 
 export default router;

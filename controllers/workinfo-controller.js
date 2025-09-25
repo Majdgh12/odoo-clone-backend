@@ -1,5 +1,6 @@
 import WorkInfo from "../models/WorkInfo.js";
-
+import WorkPermit from "../models/WorkPermit.js";
+import mongoose from "mongoose";
 /**
  * getEmployeeWorkInfo → Return work info for a specific employee
  */
@@ -34,5 +35,53 @@ export const getAllWorkInfo = async (req, res) => {
     res.status(200).json(allWorkInfo);
   } catch (error) {
     res.status(500).json({ message: "Error fetching all work info", error });
+  }
+};
+
+
+// Update both WorkInfo and WorkPermit for an employee
+export const updateEmployeeWorkData = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const { workInfo, workPermit } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+      return res.status(400).json({ message: "Invalid employee ID" });
+    }
+
+    // Update WorkInfo
+    const updatedWorkInfo = await WorkInfo.findOneAndUpdate(
+      { employee_id: employeeId },
+      {
+        work_address: workInfo?.work_address,
+        work_location: workInfo?.work_location,
+        working_hours: workInfo?.working_hours,
+        timezone: workInfo?.timezone,
+        approver_timeoff_id: workInfo?.approver_timeoff_id || null,
+        approver_timesheet_id: workInfo?.approver_timesheet_id || null,
+      },
+      { new: true, upsert: true } // create if not exists
+    );
+
+    // Update WorkPermit
+    const updatedWorkPermit = await WorkPermit.findOneAndUpdate(
+      { employee_id: employeeId },
+      {
+        visa_no: workPermit?.visa_no,
+        work_permit: workPermit?.work_permit,
+        visa_expiration: workPermit?.visa_expiration || null,
+        permit_expiration: workPermit?.permit_expiration || null,
+      },
+      { new: true, upsert: true } // create if not exists
+    );
+
+    res.status(200).json({
+      message: "Employee work data updated successfully",
+      workInfo: updatedWorkInfo,
+      workPermit: updatedWorkPermit,
+    });
+  } catch (error) {
+    console.error("Error updating employee work data:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

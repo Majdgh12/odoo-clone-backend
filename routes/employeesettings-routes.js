@@ -1,7 +1,7 @@
 import express from "express";
 import EmployeeSettings from "../models/EmployeeSettings.js";
 import { errorHandler } from "../middleware/errorMiddleware.js";
-
+import { updateEmployeeSettings } from "../controllers/settings-controller.js";
 const router = express.Router();
 
 // GET settings
@@ -43,6 +43,7 @@ router.put("/", async (req, res, next) => {
     next(error);
   }
 });
+router.put("/employee/:employeeId", updateEmployeeSettings);
 
 router.use(errorHandler);
 

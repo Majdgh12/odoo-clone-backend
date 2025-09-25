@@ -1,7 +1,7 @@
 import express from "express";
 import PrivateContact from "../models/PrivateContact.js";
 import { errorHandler } from "../middleware/errorMiddleware.js";
-
+import { updatePrivateInfo } from "../controllers/privateinfo-controller.js";
 const router = express.Router();
 
 // GET private info by employee ID
@@ -59,7 +59,7 @@ router.delete("/:id", async (req, res, next) => {
     next(error);
   }
 });
-
+router.put("/employee/:employeeId", updatePrivateInfo);
 router.use(errorHandler);
 
 export default router;
