@@ -7,5 +7,5 @@ const programmingSkillSchema = new mongoose.Schema({
   percentage: Number
 });
 
-const ProgrammingSkill = mongoose.model("ProgrammingSkill", programmingSkillSchema);
+const ProgrammingSkill = mongoose.models.ProgrammingSkill || mongoose.model("ProgrammingSkill", programmingSkillSchema);
 export default ProgrammingSkill;

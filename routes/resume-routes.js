@@ -2,6 +2,7 @@ import express from "express";
 import Education from "../models/Education.js";
 import Experience from "../models/Experience.js";
 import { errorHandler } from "../middleware/errorMiddleware.js";
+import { updateEmployeeResume } from '../controllers/resume-controller.js';
 const router = express.Router();
 
 // GET all education records for an employee
@@ -143,7 +144,8 @@ router.delete("/experience/:id", async (req, res, next) => {
     next(error);
   }
 });
-
+//update all resume data for an employee
+router.put("/employee/:employeeId", updateEmployeeResume);
 router.use(errorHandler);
 
 export default router;
