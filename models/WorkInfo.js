@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+  import mongoose from "mongoose";
 
 const workInfoSchema = new mongoose.Schema({
   employee_id: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
