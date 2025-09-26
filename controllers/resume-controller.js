@@ -88,16 +88,27 @@ export const updateEmployeeResume = async (req, res) => {
       programmingSkills = [],
     } = req.body;
 
-    // Delete old resume data
-    await Promise.all([
-      Education.deleteMany({ employee_id: employeeId }),
-      Experience.deleteMany({ employee_id: employeeId }),
-      LanguageSkill.deleteMany({ employee_id: employeeId }),
-      OtherSkill.deleteMany({ employee_id: employeeId }),
-      ProgrammingSkill.deleteMany({ employee_id: employeeId }),
+    // Check if there's any existing resume data for the employee
+    const existingData = await Promise.all([
+      Education.findOne({ employee_id: employeeId }),
+      Experience.findOne({ employee_id: employeeId }),
+      LanguageSkill.findOne({ employee_id: employeeId }),
+      OtherSkill.findOne({ employee_id: employeeId }),
+      ProgrammingSkill.findOne({ employee_id: employeeId }),
     ]);
 
-    // Insert new data
+    // If any data exists, delete old resume data
+    if (existingData.some(d => d !== null)) {
+      await Promise.all([
+        Education.deleteMany({ employee_id: employeeId }),
+        Experience.deleteMany({ employee_id: employeeId }),
+        LanguageSkill.deleteMany({ employee_id: employeeId }),
+        OtherSkill.deleteMany({ employee_id: employeeId }),
+        ProgrammingSkill.deleteMany({ employee_id: employeeId }),
+      ]);
+    }
+
+    // Insert new data (whether old data existed or not)
     const [eduDocs, expDocs, langDocs, otherDocs, progDocs] = await Promise.all([
       Education.insertMany(education.map(e => ({ ...e, employee_id: employeeId }))),
       Experience.insertMany(experience.map(e => ({ ...e, employee_id: employeeId }))),
@@ -118,3 +129,4 @@ export const updateEmployeeResume = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
