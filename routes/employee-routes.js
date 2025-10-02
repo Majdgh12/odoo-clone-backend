@@ -1,7 +1,7 @@
 import express from "express";
 import * as EmployeeController from "../controllers/employee-controller.js";
-
 const router = express.Router();
+import upload from "../middleware/upload.js";
 
 // Get all employees with full details
 // GET /api/employees
@@ -91,5 +91,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-
+//update image
+router.put("/:id/image", upload.single("image"), EmployeeController.updateEmployeeImage);
 export default router;

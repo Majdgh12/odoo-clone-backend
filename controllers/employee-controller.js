@@ -1,7 +1,8 @@
 import Employee from "../models/Employee.js";
 import mongoose from "mongoose";
 import User from "../models/user.js";
-
+import path from "path";
+import fs from "fs";
 /*getEmployees → Return all employees with full details (join Resume, Skills, WorkInfo, PrivateInfo, Settings).*/
 export const getEmployees = async () => {
   try {
@@ -185,6 +186,46 @@ export const getEmployees = async () => {
     throw err;
   }
 };
+//update image
+export const updateEmployeeImage = async (req, res) => {
+  try {
+    const employeeId = req.params.id;
+
+    let imageUrl;
+
+    // Case 1: File uploaded via multer
+    if (req.file) {
+      imageUrl = req.file.filename; 
+      // or `req.file.path` if you’re saving full path / cloudinary URL
+    }
+
+    // Case 2: JSON body with image string
+    if (req.body.image) {
+      imageUrl = req.body.image;
+    }
+
+    if (!imageUrl) {
+      return res.status(400).json({ error: "No image provided" });
+    }
+
+    const employee = await Employee.findByIdAndUpdate(
+      employeeId,
+      { image: imageUrl },
+      { new: true }
+    );
+
+    if (!employee) {
+      return res.status(404).json({ error: "Employee not found" });
+    }
+
+    res.json({ message: "Image updated successfully", employee });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+
 
 /*getEmployeeById → Return one employee with full details.*/
 export const getEmployeeById = async (employeeId) => {
