@@ -455,8 +455,10 @@ export const createEmployee = async (employeeData) => {
       full_name: employeeData.full_name,
       job_position: employeeData.job_position || "",
       work_email: employeeData.work_email,
-      work_phone: employeeData.work_phone || "",
-      work_mobile: employeeData.work_mobile || "",
+      work_phone: employeeData.work_phone ? 
+      Number(employeeData.work_phone.toString().replace(/\D/g,'')) : undefined,//abdalmajid additon
+      work_mobile: employeeData.work_mobile ?
+       Number(employeeData.work_mobile.toString().replace(/\D/g,'')) : undefined,//abdalmajid additon
       company: employeeData.company || "",
       tags: Array.isArray(employeeData.tags) ? employeeData.tags : [],
       department_id: employeeData.department_id || null,
@@ -498,6 +500,14 @@ export const updateEmployee = async (id, data) => {
   if (!data.status) {
     data.status = "offline";
   }
+  //abdalmajid addition
+    if (data.work_phone !== undefined) {
+    data.work_phone = data.work_phone ? Number(data.work_phone.toString().replace(/\D/g, '')) : undefined;
+  }
+  if (data.work_mobile !== undefined) {
+    data.work_mobile = data.work_mobile ? Number(data.work_mobile.toString().replace(/\D/g, '')) : undefined;
+  }
+  
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new Error("Invalid employee ID");
   }
