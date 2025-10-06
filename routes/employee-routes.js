@@ -1,8 +1,7 @@
 import express from "express";
 import * as EmployeeController from "../controllers/employee-controller.js";
 const router = express.Router();
-import upload from "../middleware/upload.js";
-
+import { upload } from "../middleware/upload.js";
 // Get all employees with full details
 // GET /api/employees
 router.get("/", async (req, res) => {

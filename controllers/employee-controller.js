@@ -190,27 +190,32 @@ export const getEmployees = async () => {
 export const updateEmployeeImage = async (req, res) => {
   try {
     const employeeId = req.params.id;
+    let imageData;
 
-    let imageUrl;
-
-    // Case 1: File uploaded via multer
+    // Case 1: File uploaded via multer - convert to base64
     if (req.file) {
-      imageUrl = req.file.filename; 
-      // or `req.file.path` if you’re saving full path / cloudinary URL
+      const base64Image = req.file.buffer.toString('base64');
+      const mimeType = req.file.mimetype;
+      imageData = `data:${mimeType};base64,${base64Image}`;
     }
 
-    // Case 2: JSON body with image string
+    // Case 2: Base64 string sent directly in JSON body
     if (req.body.image) {
-      imageUrl = req.body.image;
+      imageData = req.body.image;
     }
 
-    if (!imageUrl) {
+    if (!imageData) {
       return res.status(400).json({ error: "No image provided" });
+    }
+
+    // Validate base64 format
+    if (!imageData.startsWith('data:image/')) {
+      return res.status(400).json({ error: "Invalid image format" });
     }
 
     const employee = await Employee.findByIdAndUpdate(
       employeeId,
-      { image: imageUrl },
+      { image: imageData },
       { new: true }
     );
 
@@ -218,14 +223,15 @@ export const updateEmployeeImage = async (req, res) => {
       return res.status(404).json({ error: "Employee not found" });
     }
 
-    res.json({ message: "Image updated successfully", employee });
+    res.json({ 
+      message: "Image updated successfully", 
+      employee 
+    });
   } catch (err) {
+    console.error("Error updating employee image:", err);
     res.status(500).json({ error: err.message });
   }
 };
-
-
-
 
 /*getEmployeeById → Return one employee with full details.*/
 export const getEmployeeById = async (employeeId) => {
