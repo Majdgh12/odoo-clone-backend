@@ -7,8 +7,7 @@ const employeeSchema = new mongoose.Schema({
   work_email: String,
   work_phone: String,
   work_mobile: String,
-  image: String,
-  tags: [String],
+  image: { type: String, default: null },
   company: String,
 
   department_id: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
