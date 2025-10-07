@@ -1,8 +1,7 @@
 import Employee from "../models/Employee.js";
 import mongoose from "mongoose";
 import User from "../models/user.js";
-import path from "path";
-import fs from "fs";
+
 /*getEmployees → Return all employees with full details (join Resume, Skills, WorkInfo, PrivateInfo, Settings).*/
 export const getEmployees = async () => {
   try {
