@@ -5,8 +5,10 @@ const departmentSchema = new mongoose.Schema({
   description: { type: String, trim: true, maxlength: 30 },
   company: { type: String, required: true,trim:30, maxlength: 30 },
   manager_id: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // top-level manager
-  timestamps: true,
-});
+ 
+}
+, { timestamps: true }
+);
 
 const Department = mongoose.model("Department", departmentSchema);
 export default Department;

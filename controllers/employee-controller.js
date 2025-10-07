@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import User from "../models/user.js";
 import path from "path";
 import fs from "fs";
+import e from "express";
+
 /*getEmployees → Return all employees with full details (join Resume, Skills, WorkInfo, PrivateInfo, Settings).*/
 export const getEmployees = async () => {
   try {
@@ -455,10 +457,10 @@ export const createEmployee = async (employeeData) => {
       full_name: employeeData.full_name,
       job_position: employeeData.job_position || "",
       work_email: employeeData.work_email,
-      work_phone: employeeData.work_phone ? 
-      Number(employeeData.work_phone.toString().replace(/\D/g,'')) : undefined,//abdalmajid additon
-      work_mobile: employeeData.work_mobile ?
-       Number(employeeData.work_mobile.toString().replace(/\D/g,'')) : undefined,//abdalmajid additon
+
+      work_phone: workPhoneInfo ? Number(employeeData.work_phone) : undefined,
+      work_mobile: workMobileInfo ?Number(employeeData.work_mobile) : undefined,
+
       company: employeeData.company || "",
       tags: Array.isArray(employeeData.tags) ? employeeData.tags : [],
       department_id: employeeData.department_id || null,
@@ -501,13 +503,15 @@ export const updateEmployee = async (id, data) => {
     data.status = "offline";
   }
   //abdalmajid addition
-    if (data.work_phone !== undefined) {
-    data.work_phone = data.work_phone ? Number(data.work_phone.toString().replace(/\D/g, '')) : undefined;
-  }
-  if (data.work_mobile !== undefined) {
-    data.work_mobile = data.work_mobile ? Number(data.work_mobile.toString().replace(/\D/g, '')) : undefined;
+  // Phone number handling with libphonenumber-js
+  if (data.work_phone !== undefined) {
+    data.work_phone = Number(data.work_phone);
   }
   
+  if (data.work_mobile !== undefined) {
+    data.work_mobile = Number(data.work_mobile);
+  }
+  // End of addition
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new Error("Invalid employee ID");
   }
@@ -588,3 +592,6 @@ export const assignEmployeeToTeamLead = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
