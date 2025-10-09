@@ -12,6 +12,7 @@ import employeeSettingsRoutes from "./routes/employeesettings-routes.js";
 import authRoutes from "./routes/authRoutes.js";
 import path from "path";
 import projectRoutes from "./routes/project-route.js";
+import taskRoutes from "./routes/task-route.js";
 // Load environment variables
 dotenv.config();
 
@@ -42,6 +43,7 @@ app.use("/api/employee-settings", employeeSettingsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/projects", projectRoutes);
+app.use("/api/tasks", taskRoutes);
 // Add error handling middleware
 app.use((error, req, res, next) => {
   console.error(error);
