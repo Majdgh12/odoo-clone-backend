@@ -1,6 +1,7 @@
 import Employee from "../models/Employee.js";
 import mongoose from "mongoose";
 import User from "../models/user.js";
+import bcrypt from "bcryptjs";
 
 /*getEmployees → Return all employees with full details (join Resume, Skills, WorkInfo, PrivateInfo, Settings).*/
 export const getEmployees = async () => {
@@ -433,29 +434,13 @@ export const getEmployeeById = async (employeeId) => {
 // Fixed createEmployee function with proper error handling
 export const createEmployee = async (employeeData) => {
   console.log("🚀 CONTROLLER: createEmployee called");
-  console.log("🔍 CONTROLLER: employeeData received:", employeeData);
-  console.log("🔍 CONTROLLER: employeeData type:", typeof employeeData);
 
   try {
-    // The issue was here - you were trying to access employeeData.status
-    // but employeeData might be undefined or not have the status property
-
-    if (!employeeData) {
-      throw new Error("Employee data is required");
+    if (!employeeData || !employeeData.full_name || !employeeData.work_email) {
+      throw new Error("full_name and work_email are required");
     }
 
-    // Validate required fields
-    if (
-      !employeeData.full_name ||
-      !employeeData.work_email
-      
-    ) {
-      throw new Error(
-        "Missing required fields: full_name, work_email, or department_id"
-      );
-    }
-
-    // Process the employee data with safe property access
+    // ✅ Process employee data
     const processedData = {
       full_name: employeeData.full_name,
       job_position: employeeData.job_position || "",
@@ -473,30 +458,44 @@ export const createEmployee = async (employeeData) => {
         employeeData.coach_id === "null" || !employeeData.coach_id
           ? null
           : employeeData.coach_id,
-      status: employeeData.status || "offline", // This was the problematic line - now with fallback
+      status: employeeData.status || "offline",
     };
 
-    console.log("✅ CONTROLLER: Processed employee data:", processedData);
-
-    // Create the employee
+    // ✅ Save employee
     const employee = new Employee(processedData);
     const savedEmployee = await employee.save();
+    console.log("✅ Employee saved successfully:", savedEmployee);
 
-    console.log("✅ CONTROLLER: Employee saved successfully:", savedEmployee);
+    // ✅ Generate default password = full_name + "123"
+    const defaultPassword = `${employeeData.full_name.replace(/\s+/g, "")}123`; // remove spaces
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
+    // ✅ Create linked user
+    const newUser = new User({
+      email: employeeData.work_email,
+      passwordHash: hashedPassword,
+      role: "employee",
+      employee: savedEmployee._id,
+    });
+
+    const savedUser = await newUser.save();
+    console.log("✅ User account created successfully:", savedUser);
 
     return {
-      message: "Employee created successfully",
+      message: "Employee and user created successfully",
       employee: savedEmployee,
+      login_credentials: {
+        email: employeeData.work_email,
+        password: defaultPassword,
+      },
     };
   } catch (error) {
-    console.error("❌ CONTROLLER ERROR in createEmployee:", error);
-    console.error("❌ CONTROLLER ERROR message:", error.message);
-    console.error("❌ CONTROLLER ERROR stack:", error.stack);
-
-    // Re-throw the error so the route can handle it
+    console.error("❌ ERROR in createEmployee:", error);
     throw new Error(error.message || "Failed to create employee");
   }
 };
+
+
 
 // UPDATE Employee details
 export const updateEmployee = async (id, data) => {
