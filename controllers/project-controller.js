@@ -1,6 +1,9 @@
 // controllers/projectController.js
 import Project from "../models/Project.js";
 import Employee from "../models/Employee.js";
+import User from "../models/user.js"
+import mongoose from "mongoose";
+import Department from "../models/Department.js";
 // GET all projects
 export const getProjects = async (req, res) => {
   try {
@@ -141,23 +144,51 @@ export const assignTeamLead = async (req, res) => {
       return res.status(400).json({ success: false, message: "team_lead_id is required" });
     }
 
+    // 🔹 Find the project
     const project = await Project.findById(id);
-    if (!project) return res.status(404).json({ success: false, message: "Project not found" });
+    if (!project) {
+      return res.status(404).json({ success: false, message: "Project not found" });
+    }
 
-    // Optionally check permissions
+    // 🔹 Check permissions
     const user = req.user;
-    if (!user) return res.status(401).json({ success: false, message: "Unauthorized" });
-    if (user.role !== "admin" && !(user.role === "manager" && String(user.department_id) === String(project.department_id))) {
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    if (
+      user.role !== "admin" &&
+      !(user.role === "manager" && String(user.department_id) === String(project.department_id))
+    ) {
       return res.status(403).json({ success: false, message: "Forbidden - only admin/manager can assign team lead" });
     }
 
+    // 🔹 Assign the new team lead to the project
     project.team_lead_id = team_lead_id;
     await project.save();
 
-    return res.status(200).json({ success: true, message: "Team lead assigned successfully", data: project });
+    // 🔹 Find user linked to this employee and update role
+    const updatedUser = await User.findOneAndUpdate(
+      { employee: new mongoose.Types.ObjectId(team_lead_id) },  // ✅ make sure to cast to ObjectId
+      { $set: { role: "team_lead" } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User linked to this employee not found. Make sure the 'employee' field matches the ID."
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Team lead assigned successfully and user role updated",
+      data: { project, team_lead_user: updatedUser }
+    });
   } catch (error) {
     console.error("Error assigning team lead:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: error.message || "Server error" });
   }
 };
 // add members
@@ -299,5 +330,37 @@ export const getProjectById = async (req, res) => {
       success: false,
       message: "Server error",
     });
+  }
+};
+//get project by department
+export const getProjectsByDepartment = async (req, res) => {
+  const { departmentId } = req.params;
+
+  // Optional: user info for role-based access
+  const user = req.user;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(departmentId)) {
+      return res.status(400).json({ message: "Invalid department ID" });
+    }
+
+    const department = await Department.findById(departmentId).lean();
+    if (!department) return res.status(404).json({ message: "Department not found" });
+
+    // Optional role-based check
+    if (user && user.role === "manager" && String(user.department_id) !== String(departmentId)) {
+      return res.status(403).json({ message: "Forbidden - not your department" });
+    }
+
+    const projects = await Project.find({ department_id: department._id }) // use department._id
+      .populate("manager_id", "name email")
+      .populate("team_lead_id", "name email")
+      .populate("members", "name email")
+      .lean();
+
+    return res.status(200).json({ department, projects });
+  } catch (err) {
+    console.error("Error fetching projects by department:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 };
