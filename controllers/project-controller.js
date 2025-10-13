@@ -8,18 +8,35 @@ import Task from "../models/Task.js";
 // GET all projects
 export const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find()
+    const { departmentId } = req.query;
+
+    // Filter by department if provided
+    const filter = {};
+    if (departmentId) {
+      filter.department_id = departmentId;
+    }
+
+    // Fetch projects with populated fields
+    const projects = await Project.find(filter)
       .populate("department_id", "name")       // department name
-      .populate("manager_id", "name email")    // manager info
-      .populate("team_lead_id", "name email")  // team lead info
-      .populate("members", "name email");      // members info
+      .populate("manager_id", "full_name work_email")
+      .populate("team_lead_id", "full_name work_email")
+      .populate("members", "full_name work_email");
+
+    // Get department name if departmentId provided
+    let departmentName = null;
+    if (departmentId && projects.length > 0) {
+      // department_id is populated
+      departmentName = projects[0].department_id?.name || null;
+    }
 
     res.status(200).json({
       success: true,
+      departmentName,  // ✅ send department name
       data: projects,
     });
   } catch (error) {
-    console.error("Error fetching projects:", error);
+    console.error("❌ Error fetching projects:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch projects",
@@ -27,6 +44,7 @@ export const getProjects = async (req, res) => {
     });
   }
 };
+
 //create project
 export const createProject = async (req, res) => {
   try {

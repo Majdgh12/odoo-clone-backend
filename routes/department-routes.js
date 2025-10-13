@@ -17,12 +17,20 @@ router.get("/", async (req, res) => {
 
 // ✅ Get department by ID
 // GET /api/departments/:id
-router.get("/:id", async (req, res) => {
+router.get("/name/:id", async (req, res) => {
   try {
-    const department = await DepartmentController.getDepartmentById(req.params.id);
-    res.json(department);
+    const { id } = req.params;
+    const department = await DepartmentController.getDepartmentById(id);
+
+    if (!department) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    // Send in the format frontend expects
+    res.status(200).json({ departmentName: department.name });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Failed to get department by ID:", err);
+    res.status(500).json({ message: "Failed to fetch department", error: err.message });
   }
 });
 
