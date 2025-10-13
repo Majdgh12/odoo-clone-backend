@@ -26,7 +26,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-
+router.get("/department/:departmentId", EmployeeController.getEmployeesByDepartment);
 // Filter by department
 // GET /api/employees/department/:departmentId
 router.get("/department/:departmentId", async (req, res) => {

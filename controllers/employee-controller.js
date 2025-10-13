@@ -494,9 +494,31 @@ export const createEmployee = async (employeeData) => {
     throw new Error(error.message || "Failed to create employee");
   }
 };
+//get employees by department
+export const getEmployeesByDepartment = async (req, res) => {
+  try {
+    const { departmentId } = req.params;
 
+    // Find employees where department_id matches the requested ID
+    const employees = await Employee.find({ department_id: departmentId })
+      .populate("department_id", "name") // populate department name if needed
+      .populate("manager_id", "full_name")
+      .populate("team_lead_id", "full_name");
 
-
+    res.status(200).json({
+      success: true,
+      count: employees.length,
+      employees,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching employees by department:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
 // UPDATE Employee details
 export const updateEmployee = async (id, data) => {
   if (!data.status) {
