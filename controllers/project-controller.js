@@ -4,6 +4,7 @@ import Employee from "../models/Employee.js";
 import User from "../models/user.js"
 import mongoose from "mongoose";
 import Department from "../models/Department.js";
+import Task from "../models/Task.js";
 // GET all projects
 export const getProjects = async (req, res) => {
   try {
