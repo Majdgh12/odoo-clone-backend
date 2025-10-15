@@ -499,9 +499,18 @@ export const getEmployeesByDepartment = async (req, res) => {
   try {
     const { departmentId } = req.params;
 
-    // Find employees where department_id matches the requested ID
-    const employees = await Employee.find({ department_id: departmentId })
-      .populate("department_id", "name") // populate department name if needed
+    // Step 1: Find all users with role "employee"
+    const employeeUsers = await User.find({ role: "employee" }).select("employee");
+
+    // Extract the employee IDs
+    const employeeIds = employeeUsers.map(u => u.employee).filter(Boolean);
+
+    // Step 2: Find employees in the department AND linked to a user with role employee
+    const employees = await Employee.find({
+      _id: { $in: employeeIds },
+      department_id: departmentId,
+    })
+      .populate("department_id", "name") // populate department name
       .populate("manager_id", "full_name")
       .populate("team_lead_id", "full_name");
 
