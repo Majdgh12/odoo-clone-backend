@@ -170,7 +170,7 @@ export const assignTeamLead = async (req, res) => {
     }
 
     // 🔹 Check permissions
-    const user = req.user;
+   /* const user = req.user;
     if (!user) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
@@ -180,7 +180,7 @@ export const assignTeamLead = async (req, res) => {
       !(user.role === "manager" && String(user.department_id) === String(project.department_id))
     ) {
       return res.status(403).json({ success: false, message: "Forbidden - only admin/manager can assign team lead" });
-    }
+    }*/
 
     // 🔹 Assign the new team lead to the project
     project.team_lead_id = team_lead_id;
