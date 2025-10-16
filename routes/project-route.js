@@ -12,7 +12,7 @@ router.post("/", /*requireAuth, isAdmin, isManagerOfDepartment,*/ projectControl
 //update project
 router.put("/:id", requireAuth, canEditProject, projectController.updateProject);
 //delete project
-router.delete("/:id", requireAuth, projectController.deleteProject);
+router.delete("/:id",/* requireAuth,*/ projectController.deleteProject);
 //assign team lead
 router.put("/:id/assign-team-lead", /*requireAuth,*/ projectController.assignTeamLead);
 // add members to project
