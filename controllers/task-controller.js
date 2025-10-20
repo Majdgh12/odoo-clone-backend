@@ -59,8 +59,8 @@ export const createTask = async (req, res) => {
     const isTeamLead = project.team_lead_id?.equals(userId);
     const isMember = project.members?.some(m => m.equals(userId));
 
-    if (!isManager && !isTeamLead && !isMember)
-      return res.status(403).json({ error: "You are not allowed to create tasks in this project" });
+    /*if (!isManager && !isTeamLead && !isMember)
+      return res.status(403).json({ error: "You are not allowed to create tasks in this project" });*/
 
     const newTask = await Task.create({
       title,
