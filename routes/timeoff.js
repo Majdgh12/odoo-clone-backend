@@ -55,5 +55,6 @@ router.get("/holidays", getHolidays);
 
 // Delete holiday (Admin only)
 router.delete("/holidays/:id", deleteHoliday);
+router.get("/requests/department/:managerId", Request.getDepartmentRequests);
 
 export default router;

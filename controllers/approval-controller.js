@@ -5,7 +5,7 @@ import TimeOffBalance from "../models/timeOffBalance.js";
 export const approveRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const approver_id = req.user._id; // assuming JWT middleware
+const approver_id = req.body.approver_id || null;
 
     const request = await TimeOffRequest.findById(id);
     if (!request) return res.status(404).json({ message: "Request not found" });
@@ -35,7 +35,8 @@ export const rejectRequest = async (req, res) => {
   try {
     const { id } = req.params;
     const { comment } = req.body;
-    const approver_id = req.user._id;
+   const approver_id = req.body.approver_id || null;
+
 
     const request = await TimeOffRequest.findById(id);
     if (!request) return res.status(404).json({ message: "Request not found" });

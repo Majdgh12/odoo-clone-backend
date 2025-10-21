@@ -2,7 +2,7 @@ import TimeOffBalance from "../models/timeOffBalance.js";
 import mongoose from "mongoose";
 // 🟢 Get balance for an employee
 export const getBalance = async (req, res) => {
-const employeeId = req.params.employeeId?.trim();
+  const employeeId = req.params.employeeId?.trim();
 
   if (!employeeId) return res.status(400).json({ message: "Employee ID is required" });
 
@@ -11,17 +11,23 @@ const employeeId = req.params.employeeId?.trim();
       return res.status(400).json({ message: "Invalid Employee ID" });
     }
 
-    const balance = await TimeOffBalance.findOne({
-      employee_id: employeeId, // Mongoose can handle string ObjectId
+    let balance = await TimeOffBalance.findOne({
+      employee_id: employeeId,
       year: new Date().getFullYear(),
     });
 
+    // ✅ Auto-create if missing
     if (!balance) {
-      console.log("No balance found for employee:", employeeId);
-      return res.status(404).json({ message: "No balance found" });
+      balance = await TimeOffBalance.create({
+        employee_id: employeeId,
+        year: new Date().getFullYear(),
+        paid_days: 20,           // defaults
+        compensatory_days: 16,
+        sick_days: 0,
+      });
+      console.log("Balance auto-created for employee:", employeeId);
     }
 
-    // Map DB fields to frontend expectation
     res.json({
       paid: balance.paid_days,
       compensatory: balance.compensatory_days,
@@ -32,6 +38,7 @@ const employeeId = req.params.employeeId?.trim();
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // 🟡 Update balance manually (admin use)
 export const updateBalance = async (req, res) => {
