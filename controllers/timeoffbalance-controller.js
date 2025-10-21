@@ -1,0 +1,60 @@
+import TimeOffBalance from "../models/timeOffBalance.js";
+import mongoose from "mongoose";
+// 🟢 Get balance for an employee
+export const getBalance = async (req, res) => {
+  const employeeId = req.params.employeeId?.trim();
+
+  if (!employeeId) return res.status(400).json({ message: "Employee ID is required" });
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+      return res.status(400).json({ message: "Invalid Employee ID" });
+    }
+
+    let balance = await TimeOffBalance.findOne({
+      employee_id: employeeId,
+      year: new Date().getFullYear(),
+    });
+
+    // ✅ Auto-create if missing
+    if (!balance) {
+      balance = await TimeOffBalance.create({
+        employee_id: employeeId,
+        year: new Date().getFullYear(),
+        paid_days: 20,           // defaults
+        compensatory_days: 16,
+        sick_days: 0,
+      });
+      console.log("Balance auto-created for employee:", employeeId);
+    }
+
+    res.json({
+      paid: balance.paid_days,
+      compensatory: balance.compensatory_days,
+      sick: balance.sick_days,
+    });
+  } catch (error) {
+    console.error("Error in getBalance:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+// 🟡 Update balance manually (admin use)
+export const updateBalance = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const { paid_days, compensatory_days, sick_days } = req.body;
+
+    const balance = await TimeOffBalance.findOneAndUpdate(
+      { employee_id: employeeId, year: new Date().getFullYear() },
+      { paid_days, compensatory_days, sick_days },
+      { new: true, upsert: true }
+    );
+
+    res.json(balance);
+  } catch (error) {
+    console.error("Error updating balance:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
