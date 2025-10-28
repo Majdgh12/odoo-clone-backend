@@ -11,10 +11,14 @@ const timeOffRequestSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["Paid", "Compensatory", "Sick"],
+      enum: ["Paid", "Compensatory", "Sick","Remote"],
       required: true
     },
-
+     duration: {
+      type: String,
+      enum: ["Full Day", "Half Day"],   
+      default: "Full Day"
+    },
     status: {
       type: String,
       enum: ["Pending", "Approved", "Rejected"],
