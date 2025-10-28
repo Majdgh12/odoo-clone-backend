@@ -13,6 +13,7 @@ const mapRequest = (r, scope = null) => ({
   endDate: r.end_date,
   numberOfDays: r.number_of_days,
   status: r.status,
+   duration: r.duration || "Full Day",
   employeeId: r.employee_id?._id,
   employeeName: r.employee_id?.full_name || "Unknown",
   approvedBy: r.approver_id?.full_name || null,
@@ -22,7 +23,7 @@ const mapRequest = (r, scope = null) => ({
 // 🟢 Create a new time off request
 export const createTimeOffRequest = async (req, res) => {
   try {
-    const { employee_id, start_date, end_date, type } = req.body;
+    const { employee_id, start_date, end_date, type,duration } = req.body;
 
     const employee = await Employee.findById(employee_id).populate("manager_id");
     if (!employee) return res.status(404).json({ message: "Employee not found" });
@@ -36,10 +37,14 @@ export const createTimeOffRequest = async (req, res) => {
     }
 
     // calculate days excluding weekends + holidays
+    let number_of_days;
+    if(duration==="Half Day"){
+      number_of_days=0.5;
+    }else{
     const holidays = await PublicHoliday.find().select("date");
     const holidayDates = holidays.map(h => h.date);
-    const number_of_days = calculateNumberOfDays(start_date, end_date, holidayDates);
-
+    number_of_days = calculateNumberOfDays(start_date, end_date, holidayDates);
+    }
     // check balance
     const balance = await TimeOffBalance.findOne({
       employee_id,
@@ -62,6 +67,7 @@ export const createTimeOffRequest = async (req, res) => {
       end_date,
       number_of_days,
       type,
+      duration,
     });
     await newRequest.save();
 
