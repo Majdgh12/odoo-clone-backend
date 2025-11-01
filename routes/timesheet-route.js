@@ -1,48 +1,54 @@
 import express from "express";
 import {
-  createTimesheet,
   getTimesheets,
   getTimesheetById,
+  createTimesheet,
   updateTimesheet,
   deleteTimesheet,
+  getTimesheetsGrouped,
+  getTimesheetsByRole,
+  getProjectsByRole,
+  deleteTimesheetsBySelection,
 } from "../controllers/timesheetController.js";
 
 const router = express.Router();
 
 /**
- * @route   POST /api/timesheets
- * @desc    Create a new timesheet entry
- * @access  Private (Employee or Manager)
- */
-router.post("/", createTimesheet);
-
-/**
  * @route   GET /api/timesheets
- * @desc    Get all timesheets (with optional filters)
- * @query   project_id, task_id, employee_id
- * @access  Private
+ * @desc    Get all timesheets (filter by project, task, employee, or day/week/month)
  */
 router.get("/", getTimesheets);
+router.get("/grouped", getTimesheetsGrouped);
 
 /**
  * @route   GET /api/timesheets/:id
- * @desc    Get a single timesheet by ID
- * @access  Private
+ * @desc    Get single timesheet
  */
 router.get("/:id", getTimesheetById);
 
 /**
+ * @route   POST /api/timesheets
+ * @desc    Create new timesheet
+ */
+router.post("/", createTimesheet);
+
+/**
  * @route   PUT /api/timesheets/:id
- * @desc    Update a timesheet record
- * @access  Private
+ * @desc    Update timesheet
  */
 router.put("/:id", updateTimesheet);
 
 /**
  * @route   DELETE /api/timesheets/:id
- * @desc    Delete a timesheet record
- * @access  Private (Manager or Admin)
+ * @desc    Delete timesheet
  */
 router.delete("/:id", deleteTimesheet);
+router.delete("/delete/by-selection", deleteTimesheetsBySelection);
+
+
+// routes/timesheet-route.js
+router.get("/all/role", getTimesheetsByRole);
+router.get("/projects/by-role", getProjectsByRole); // 👈 new route
+
 
 export default router;

@@ -14,6 +14,7 @@ import path from "path";
 import projectRoutes from "./routes/project-route.js";
 import taskRoutes from "./routes/task-route.js";
 import timeoff from "./routes/timeoff.js";
+import timesheets from "./routes/timesheet-route.js";
 // Load environment variables
 dotenv.config();
 
@@ -46,6 +47,8 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/timeoff", timeoff);
+app.use("/api/timesheets", timesheets);
+
 // Add error handling middleware
 app.use((error, req, res, next) => {
   console.error(error);
