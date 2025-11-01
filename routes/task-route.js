@@ -1,15 +1,15 @@
 // routes/taskRoutes.js
 import express from "express";
 import * as taskController from "../controllers/task-controller.js";
-import { requireAuth } from "../middleware/permissions.js";
+import {  } from "../middleware/permissions.js";
 
 const router = express.Router();
 
-router.get("/",/* requireAuth,*/ taskController.getTasks);
-router.post("/", /*requireAuth,*/ taskController.createTask);
-router.get("/:id", requireAuth, taskController.getTaskById);
-router.put("/:id",/* requireAuth, */taskController.updateTask);
-router.delete("/:id",/* requireAuth,*/ taskController.deleteTask);
-router.post("/:id/comments", requireAuth, taskController.addComment);
+router.get("/", taskController.getTasks);
+router.post("/",  taskController.createTask);
+router.get("/:id",  taskController.getTaskById);
+router.put("/:id",  taskController.updateTask);
+router.delete("/:id",  taskController.deleteTask);
+router.post("/:id/comments", taskController.addComment);
 
 export default router;

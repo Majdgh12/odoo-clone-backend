@@ -59,8 +59,8 @@ export const createTask = async (req, res) => {
     const isTeamLead = project.team_lead_id?.equals(userId);
     const isMember = project.members?.some(m => m.equals(userId));
 
-    /*if (!isManager && !isTeamLead && !isMember)
-      return res.status(403).json({ error: "You are not allowed to create tasks in this project" });*/
+    // if (!isManager && !isTeamLead && !isMember)
+    //   return res.status(403).json({ error: "You are not allowed to create tasks in this project" });
 
     const newTask = await Task.create({
       title,
@@ -245,10 +245,8 @@ export const updateTaskStatus = async (req, res) => {
     const allowedStatuses = [
       "todo",
       "in_progress",
-      "changes_requested",
-      "approved",
       "done",
-      "cancelled",
+      "blocked",
     ];
 
     if (!allowedStatuses.includes(status)) {
@@ -276,9 +274,8 @@ export const updateTaskStatus = async (req, res) => {
     const restricted = {
       in_progress: ["assignee", "team_lead"],
       done: ["assignee", "manager", "team_lead"],
-      approved: ["manager", "team_lead"],
-      cancelled: ["manager", "admin"],
-      changes_requested: ["manager", "team_lead"],
+      blocked: ["manager", "admin"],
+     
     };
 
     const role = user.role === "team_lead" ? "team_lead" : user.role;
